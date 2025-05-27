@@ -35,10 +35,11 @@ void setup() {
   pinMode(data_ready_signal_pin, OUTPUT);
   lcd.begin(16, 2);
   //sendCommand(query_report_mode_command, sizeof(query_report_mode_command));
-  //delay(100);
+  //delay(1000);
   //sendCommand(work_mode_command, sizeof(work_mode_command));
-  //delay(100);
+  //delay(1000);
   //sendCommand(active_report_mode_command, sizeof(active_report_mode_command));
+  //delay(1000);
 }
 
 void sendCommand(uint8_t* cmd, size_t len) {
