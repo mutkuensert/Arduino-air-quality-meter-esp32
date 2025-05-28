@@ -153,11 +153,27 @@ Sds011SensorHandler sensorHandler(sensorSerial);
 void setup() {
   Serial.begin(115200);
   sensorSerial.begin(9600);
-  setTime(13, 49, 0, 28, 5, 2025);  // Set current time for arduino
+  setTime(20, 11, 0, 28, 5, 2025);  // Set current time for arduino
   pinMode(data_ready_signal_pin, OUTPUT);
   lcd.begin(16, 2);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Starting...");
   sensorHandler.sendQueryReportModeCommand();
   delay(1000);
+}
+
+void loop() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Stabilizing...");
+  sensorHandler.sendWorkModeCommand();
+  delay(30000);  //Wait for sensor stabilization
+  sensorHandler.sendQueryDataCommand();
+  delay(1000);
+  readMeasurementData();
+  sensorHandler.sendSleepModeCommand();
+  delay(60000);
 }
 
 String getDateTime() {
@@ -168,24 +184,9 @@ String getDateTime() {
   int hr = hour(currentTime);
   int min = minute(currentTime);
   int sec = second(currentTime);
-
   char dateTimeBuffer[30];
   sprintf(dateTimeBuffer, "%04d-%02d-%02d %02d:%02d:%02d", yr, mn, dy, hr, min, sec);
   return String(dateTimeBuffer);
-}
-
-void loop() {
-  Serial.println("Send work mode command.");
-  sensorHandler.sendWorkModeCommand();
-  delay(30000);
-  Serial.println("Send query data command.");
-  sensorHandler.sendQueryDataCommand();
-  delay(1000);
-  Serial.println("Read measurement command.");
-  readMeasurementData();
-  Serial.println("Send sleep mode command.");
-  sensorHandler.sendSleepModeCommand();
-  delay(60000);
 }
 
 void readMeasurementData() {
@@ -199,7 +200,10 @@ void readMeasurementData() {
   lcd.setCursor(0, 1);
   lcd.print(pm10Output);
 
-  Serial.println(getDateTime() + ":" + "\n" + pm25Output + "\n" + pm10Output);
+  Serial.print(getDateTime() + "\r\n");
+  Serial.print(pm25Output + "\r\n");
+  Serial.print(pm10Output + "\r\n");
+  Serial.print("\r\n");
   sendDataIsReadySignalForEsp32();
 }
 
