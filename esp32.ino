@@ -27,7 +27,6 @@ struct tm getLocalTime() {
 
   if (!getLocalTime(&timeinfo)) {
     Serial.println("Time info could not be retrieved.");
-    // Geçersiz zaman döndürmek için tüm alanları sıfırla
     memset(&timeinfo, 0, sizeof(struct tm));
   }
 
@@ -35,14 +34,12 @@ struct tm getLocalTime() {
 }
 
 void setup() {
-  pinMode(15, INPUT);  // Arduino'dan gelen sinyal pini
+  pinMode(15, INPUT);
   attachInterrupt(digitalPinToInterrupt(15), setDataReady, RISING);
 
   Serial.begin(115200);
 
   delay(10);
-
-  // We start by connecting to a WiFi network
 
   Serial.println();
   Serial.println();
