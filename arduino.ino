@@ -3,49 +3,161 @@
 #include <SoftwareSerial.h>
 #include <LiquidCrystal_I2C.h>
 
+class PmResult {
+public:
+  float pm25;
+  float pm10;
+
+  PmResult(float pm25, float pm10) {
+    this->pm25 = pm25;
+    this->pm10 = pm10;
+  }
+};
+
+class Sds011SensorHandler {
+public:
+  SoftwareSerial& sensorSerial;
+
+  Sds011SensorHandler(SoftwareSerial& sensorSerial)
+    : sensorSerial(sensorSerial) {}
+
+private:
+  uint8_t sleep_mode_command[19] = {
+    0xAA, 0xB4, 0x06, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x05, 0xAB
+  };
+
+private:
+  uint8_t work_mode_command[19] = {
+    0xAA, 0xB4, 0x06, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x06, 0xAB
+  };
+
+private:
+  uint8_t query_report_mode_command[19] = {
+    0xAA, 0xB4, 0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x02, 0xAB
+  };
+
+private:
+  uint8_t query_data_command[19] = {
+    0xAA, 0xB4, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x02, 0xAB
+  };
+
+private:
+  uint8_t active_report_mode_command[19] = {
+    0xAA, 0xB4, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x01, 0xAB
+  };
+
+private:
+  uint8_t sensor_data_head = 0xAA;
+private:
+  uint8_t sensor_measurement_answer_id = 0xC0;
+
+public:
+  PmResult readPmResult() {
+    waitUntilSensorDataIsAvailable();
+    readUntilDataHead();
+
+    if (isSerialDataSensorMeasurement()) {
+      int pm25Low = sensorSerial.read();
+      int pm25High = sensorSerial.read();
+      int pm10Low = sensorSerial.read();
+      int pm10High = sensorSerial.read();
+      float pm25 = convertHighLowByteToDecimal(pm25High, pm25Low) / 10.0;
+      float pm10 = convertHighLowByteToDecimal(pm10High, pm10Low) / 10.0;
+
+      return PmResult(pm25, pm10);
+    }
+  }
+
+private:
+  void sendCommand(uint8_t* cmd, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+      sensorSerial.write(cmd[i]);
+    }
+  }
+
+public:
+  void sendSleepModeCommand() {
+    sendCommand(sleep_mode_command, sizeof(sleep_mode_command));
+  }
+
+public:
+  void sendWorkModeCommand() {
+    sendCommand(work_mode_command, sizeof(work_mode_command));
+  }
+
+public:
+  void sendQueryReportModeCommand() {
+    sendCommand(query_report_mode_command, sizeof(query_report_mode_command));
+  }
+
+public:
+  void sendActiveReportModeCommand() {
+    sendCommand(active_report_mode_command, sizeof(active_report_mode_command));
+  }
+
+public:
+  void sendQueryDataCommand() {
+    sendCommand(query_data_command, sizeof(query_data_command));
+  }
+
+  int convertHighLowByteToDecimal(uint8_t high, uint8_t low) {
+    return (high << 8) | low;
+  }
+
+private:
+  uint8_t mod256(uint16_t value) {
+    return value % 256;
+  }
+
+private:
+  bool isSensorDataAvailable() {
+    return sensorSerial.available() >= 10;
+  }
+private:
+  bool waitUntilSensorDataIsAvailable() {
+    while (sensorSerial.available() < 10)
+      ;
+  }
+
+private:
+  void readUntilDataHead() {
+    while (sensorSerial.read() != sensor_data_head)
+      ;
+  }
+
+private:
+  bool isSerialDataSensorMeasurement() {
+    return sensorSerial.read() == sensor_measurement_answer_id;
+  }
+
+private:
+  void readRawCommandResponse() {
+    while (sensorSerial.available()) {
+      uint8_t b = sensorSerial.read();
+      Serial.print("0x");
+      Serial.print(b, HEX);
+      Serial.print(" ");
+    }
+    Serial.println();
+  }
+};
+
 int data_ready_signal_pin = 2;
 int sensor_receiver_pin = 3;
 int sensor_transmitter_pin = 4;
-uint8_t sensor_data_head = 0xAA;
-uint8_t sensor_measurement_answer_id = 0xC0;
-
-uint8_t sleep_mode_command[] = {
-  0xAA, 0xB4, 0x06, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x05, 0xAB
-};
-
-uint8_t work_mode_command[] = {
-  0xAA, 0xB4, 0x06, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x06, 0xAB
-};
-
-uint8_t query_report_mode_command[] = {
-  0xAA, 0xB4, 0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x02, 0xAB
-};
-
-uint8_t active_report_mode_command[] = {
-  0xAA, 0xB4, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x01, 0xAB
-};
 
 SoftwareSerial sensorSerial(sensor_receiver_pin, sensor_transmitter_pin);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+Sds011SensorHandler sensorHandler(sensorSerial);
 
 void setup() {
   Serial.begin(115200);
   sensorSerial.begin(9600);
-  setTime(13, 01, 0, 27, 5, 2025);  // Set current time for arduino
+  setTime(13, 49, 0, 28, 5, 2025);  // Set current time for arduino
   pinMode(data_ready_signal_pin, OUTPUT);
   lcd.begin(16, 2);
-  //sendCommand(query_report_mode_command, sizeof(query_report_mode_command));
-  //delay(1000);
-  //sendCommand(work_mode_command, sizeof(work_mode_command));
-  //delay(1000);
-  //sendCommand(active_report_mode_command, sizeof(active_report_mode_command));
-  //delay(1000);
-}
-
-void sendCommand(uint8_t* cmd, size_t len) {
-  for (size_t i = 0; i < len; ++i) {
-    sensorSerial.write(cmd[i]);
-  }
+  sensorHandler.sendQueryReportModeCommand();
+  delay(1000);
 }
 
 String getDateTime() {
@@ -63,28 +175,23 @@ String getDateTime() {
 }
 
 void loop() {
-  measureParticle();
-}
-
-void measureParticle() {
-  if (isSensorDataAvailable()) {
-    readUntilDataHead();
-    if (isSerialDataSensorMeasurement()) {
-      readMeasurementData();
-    }
-  }
+  Serial.println("Send work mode command.");
+  sensorHandler.sendWorkModeCommand();
+  delay(30000);
+  Serial.println("Send query data command.");
+  sensorHandler.sendQueryDataCommand();
+  delay(1000);
+  Serial.println("Read measurement command.");
+  readMeasurementData();
+  Serial.println("Send sleep mode command.");
+  sensorHandler.sendSleepModeCommand();
+  delay(60000);
 }
 
 void readMeasurementData() {
-  int pm25Low = sensorSerial.read();
-  int pm25High = sensorSerial.read();
-  int pm10Low = sensorSerial.read();
-  int pm10High = sensorSerial.read();
-  float pm25 = convertHighLowByteToDecimal(pm25High, pm25Low) / 10.0;
-  float pm10 = convertHighLowByteToDecimal(pm10High, pm10Low) / 10.0;
-
-  String pm25Output = "PM2.5: " + String(pm25) + " ug/m3";
-  String pm10Output = "PM10: " + String(pm10) + " ug/m3";
+  PmResult pmResult = sensorHandler.readPmResult();
+  String pm25Output = "PM2.5: " + String(pmResult.pm25) + " ug/m3";
+  String pm10Output = "PM10: " + String(pmResult.pm10) + " ug/m3";
 
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -93,67 +200,11 @@ void readMeasurementData() {
   lcd.print(pm10Output);
 
   Serial.println(getDateTime() + ":" + "\n" + pm25Output + "\n" + pm10Output);
-  sendDataIsReadySignal();
+  sendDataIsReadySignalForEsp32();
 }
 
-void readRawCommandResponse() {
-  while (sensorSerial.available()) {
-    uint8_t b = sensorSerial.read();
-    Serial.print("0x");
-    Serial.print(b, HEX);
-    Serial.print(" ");
-  }
-  Serial.println();
-}
-
-bool isSensorDataAvailable() {
-  return sensorSerial.available() >= 10;
-}
-
-void readUntilDataHead() {
-  while (sensorSerial.read() != sensor_data_head)
-    ;
-}
-
-bool isSerialDataSensorMeasurement() {
-  return sensorSerial.read() == sensor_measurement_answer_id;
-}
-
-void sendDataIsReadySignal() {
+void sendDataIsReadySignalForEsp32() {
   digitalWrite(data_ready_signal_pin, HIGH);  // Data is ready signal for esp32
   delay(10);                                  // Short amount of time for signal detection
   digitalWrite(data_ready_signal_pin, LOW);   // Reset signal
-}
-
-int convertHighLowByteToDecimal(uint8_t high, uint8_t low) {
-  return (high << 8) | low;
-}
-
-void scanScreenAddress() {
-  Wire.begin();
-  Serial.begin(4800);
-  while (!Serial)
-    ;  // Needed for some cards, No problem for Nano
-
-  Serial.println("Scanning I2C devices...");
-
-  byte count = 0;
-  for (byte addr = 1; addr < 127; addr++) {
-    Wire.beginTransmission(addr);
-    if (Wire.endTransmission() == 0) {
-      Serial.print("Device found: 0x");
-      Serial.println(addr, HEX);
-      count++;
-    }
-  }
-
-  if (count == 0) {
-    Serial.println("No I2C device found.");
-  } else {
-    Serial.println("Scan has been finished.");
-  }
-}
-
-uint8_t mod256(uint16_t value) {
-  return value % 256;
 }
