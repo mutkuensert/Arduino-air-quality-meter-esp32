@@ -7,6 +7,8 @@ const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 3 * 3600;
 const int daylightOffset_sec = 0;
 
+const int signal_pin = 15;
+
 IPAddress local_IP(192, 168, 0, 184);
 IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
@@ -27,7 +29,7 @@ struct tm getLocalTime() {
 
   if (!getLocalTime(&timeinfo)) {
     Serial.println("Time info could not be retrieved.");
-    // Geçersiz zaman döndürmek için tüm alanları sıfırla
+    // Set all fields to zero to return invalid time
     memset(&timeinfo, 0, sizeof(struct tm));
   }
 
@@ -35,14 +37,12 @@ struct tm getLocalTime() {
 }
 
 void setup() {
-  pinMode(15, INPUT);  // Arduino'dan gelen sinyal pini
-  attachInterrupt(digitalPinToInterrupt(15), setDataReady, RISING);
+  pinMode(signal_pin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(signal_pin), setDataReady, RISING);
 
   Serial.begin(115200);
 
   delay(10);
-
-  // We start by connecting to a WiFi network
 
   Serial.println();
   Serial.println();
@@ -119,7 +119,7 @@ void loop() {
     float* data = getSensorData();
     htmlData = String(String(data[0]) + "<br>" + String(data[1]));
     jsonData = String("{\"pm2.5\":") + String(data[0]) + "," + String("\"pm10\":") + String(data[1]) + String("}");
-    Serial.println("Received data: " + String(data[0]) + "\n" + String(data[1]));
+    Serial.println("Received data:\n" + String(data[0]) + "\n" + String(data[1]));
   }
 
   if (client) {
