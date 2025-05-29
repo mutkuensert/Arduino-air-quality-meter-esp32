@@ -7,10 +7,18 @@ class PmResult {
 public:
   float pm25;
   float pm10;
+  uint8_t pm25_low;
+  uint8_t pm25_high;
+  uint8_t pm10_low;
+  uint8_t pm10_high;
 
-  PmResult(float pm25, float pm10) {
+  PmResult(float pm25, float pm10, uint8_t pm25_low, uint8_t pm25_high, uint8_t pm10_low, uint8_t pm10_high) {
     this->pm25 = pm25;
     this->pm10 = pm10;
+    this->pm25_low = pm25_low;
+    this->pm25_high = pm25_high;
+    this->pm10_low = pm10_low;
+    this->pm10_high = pm10_high;
   }
 };
 
@@ -64,7 +72,7 @@ public:
       float pm25 = convertHighLowByteToDecimal(pm25High, pm25Low) / 10.0;
       float pm10 = convertHighLowByteToDecimal(pm10High, pm10Low) / 10.0;
 
-      return PmResult(pm25, pm10);
+      return PmResult(pm25, pm10, pm25Low, pm25High, pm10Low, pm10High);
     }
   }
 
@@ -189,6 +197,9 @@ String getDateTime() {
   return String(dateTimeBuffer);
 }
 
+uint8_t esp32_data_head = 0xAA;
+
+
 void readMeasurementData() {
   PmResult pmResult = sensorHandler.readPmResult();
   String pm25Output = "PM2.5: " + String(pmResult.pm25) + " ug/m3";
@@ -200,10 +211,11 @@ void readMeasurementData() {
   lcd.setCursor(0, 1);
   lcd.print(pm10Output);
 
-  Serial.print(getDateTime() + "\r\n");
-  Serial.print(pm25Output + "\r\n");
-  Serial.print(pm10Output + "\r\n");
-  Serial.print("\r\n");
+  Serial.write(esp32_data_head);
+  Serial.write(pmResult.pm25_low);
+  Serial.write(pmResult.pm25_high);
+  Serial.write(pmResult.pm10_low);
+  Serial.write(pmResult.pm10_high);
   sendDataIsReadySignalForEsp32();
 }
 
