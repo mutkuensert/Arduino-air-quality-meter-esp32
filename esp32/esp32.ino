@@ -1,9 +1,7 @@
 #include <WiFi.h>
 #include "time.h"
 #include <Arduino.h>
-
-const char* ssid = "ssid";
-const char* password = "pass";
+#include "Credentials.h"
 
 const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = 3 * 3600;
@@ -15,9 +13,10 @@ IPAddress subnet(255, 255, 255, 0);
 
 WiFiServer server(80);
 volatile bool isDataReady = false;
+uint8_t data_head = 0xAA;
+
 String htmlData = "";
 String jsonData = "";
-uint8_t data_head = 0xAA;
 
 void IRAM_ATTR setDataReady() {
   isDataReady = true;
@@ -62,6 +61,8 @@ void setup() {
   Serial.println("WiFi connected.");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  Serial.println("Signal strength (RSSI):");
+  Serial.println(WiFi.RSSI());
 
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
@@ -74,13 +75,16 @@ void flushSerial() {
   }
 }
 
-bool isDataAvailable() {
-  return Serial.available() >= 5;
+void waitForData() {
+  while (Serial.available() < 4) {
+    delay(1);
+  }
 }
 
 void readUntilDataHead() {
-  while (Serial.read() != data_head)
-    ;
+  while (Serial.read() != data_head) {
+    delay(1);
+  }
 }
 
 int convertHighLowByteToDecimal(uint8_t high, uint8_t low) {
@@ -89,7 +93,7 @@ int convertHighLowByteToDecimal(uint8_t high, uint8_t low) {
 
 float* getSensorData() {
   isDataReady = false;
-  static float data[4];
+  static float data[2];
   String currentLine = "";
   int lineIndex = 0;
 
@@ -109,45 +113,59 @@ float* getSensorData() {
 
 void loop() {
   WiFiClient client = server.available();
-  if (isDataReady && isDataAvailable()) {
+
+  if (isDataReady) {
+    waitForData();
     float* data = getSensorData();
-    htmlData = String(String(data[0]) + "<br>" + String(data[1]) + "<br>" + htmlData);
+    htmlData = String(String(data[0]) + "<br>" + String(data[1]));
+    jsonData = String("{\"pm2.5\":") + String(data[0]) + "," + String("\"pm10\":") + String(data[1]) + String("}");
     Serial.println("Received data: " + String(data[0]) + "\n" + String(data[1]));
   }
 
   if (client) {
     Serial.println("New Client.");
     String currentLine = "";
+    bool isEndOfRequest = false;
     while (client.connected()) {
       if (client.available()) {
         char c = client.read();
-        Serial.write(c);
-        if (c == '\n') {
 
-          if (currentLine.length() == 0) {
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html; charset=UTF-8");
-            client.println();
-            //struct tm currentTime = getLocalTime();
-            //client.println(&currentTime, "%Y-%m-%d %H:%M:%S");
-
-            client.println(htmlData);
-            client.println();
-            break;
-          } else {
-            currentLine = "";
-          }
-        } else if (c != '\r') {
+        if (c != '\r') {
           currentLine += c;
         }
 
-        if (currentLine.endsWith("GET /json")) {
+        if (currentLine == "\n") {
+          isEndOfRequest = true;
+        } else if (c == '\n' && currentLine.length() != 0) {
+          currentLine = "";
+        }
+
+        Serial.write(c);
+
+        if (currentLine.startsWith("GET /json")) {
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-type:application/json; charset=UTF-8");
+          client.println();
+          client.println(jsonData);
+          client.println();
+          break;
+        }
+
+        if (isEndOfRequest) {
           client.println("HTTP/1.1 200 OK");
           client.println("Content-type:text/html; charset=UTF-8");
           client.println();
+          //struct tm currentTime = getLocalTime();
+          //client.println(&currentTime, "%Y-%m-%d %H:%M:%S");
+
+          client.println(htmlData);
+          client.println();
+          break;
         }
       }
     }
+
+    delay(1);  // give the web browser time to receive the data
     client.stop();
     Serial.println("Client Disconnected.");
   }

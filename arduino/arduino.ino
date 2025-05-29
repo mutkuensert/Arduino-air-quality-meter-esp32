@@ -123,8 +123,9 @@ private:
   }
 private:
   bool waitUntilSensorDataIsAvailable() {
-    while (sensorSerial.available() < 10)
-      ;
+    while (sensorSerial.available() < 10) {
+      delay(1);
+    }
   }
 
 private:
@@ -181,7 +182,7 @@ void loop() {
   delay(1000);
   readMeasurementData();
   sensorHandler.sendSleepModeCommand();
-  delay(60000);
+  delay(30000);
 }
 
 String getDateTime() {
@@ -198,7 +199,6 @@ String getDateTime() {
 }
 
 uint8_t esp32_data_head = 0xAA;
-
 
 void readMeasurementData() {
   PmResult pmResult = sensorHandler.readPmResult();
