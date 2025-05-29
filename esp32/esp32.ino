@@ -120,8 +120,13 @@ void loop() {
   if (isDataReady) {
     waitForData();
     float* data = getSensorData();
-    htmlData = String("Wifi strength: " + String(rssi) + "<br>" + String(data[0]) + "<br>" + String(data[1]));
+    htmlData = String(
+      "Wifi strength: " + String(rssi) + "<br>"
+      + "PM2.5: " + String(data[0]) + "<br>"
+      + "PM10: " + String(data[1]));
+
     jsonData = String("{\"pm2.5\":") + String(data[0]) + "," + String("\"pm10\":") + String(data[1]) + String("}");
+
     Serial.println("Received data:");
     Serial.println(data[0]);
     Serial.println(data[1]);
