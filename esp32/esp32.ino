@@ -3,13 +3,13 @@
 #include <Arduino.h>
 #include "Credentials.h"
 
-const char* ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 3 * 3600;
-const int daylightOffset_sec = 0;
+constexpr char* NTP_SERVER = "pool.ntp.org";
+constexpr long GMT_OFFSET_SEC = 3 * 3600;
+constexpr int DAYLIGHT_OFFSET_SEC = 0;
 
-const int signal_pin = 15;
+constexpr int SIGNAL_PIN = 15;
 
-IPAddress local_IP(192, 168, 0, 184);
+IPAddress localIp(192, 168, 0, 184);
 IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
@@ -17,7 +17,7 @@ WiFiServer server(80);
 long rssi = 0;
 
 volatile bool isDataReady = false;
-uint8_t data_head = 0xAA;
+constexpr uint8_t DATA_HEAD = 0xAA;
 
 String htmlData = "";
 String jsonData = "";
@@ -39,8 +39,8 @@ struct tm getLocalTime() {
 }
 
 void setup() {
-  pinMode(signal_pin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(signal_pin), setDataReady, RISING);
+  pinMode(SIGNAL_PIN, INPUT);
+  attachInterrupt(digitalPinToInterrupt(SIGNAL_PIN), setDataReady, RISING);
 
   Serial.begin(115200);
 
@@ -51,7 +51,7 @@ void setup() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  WiFi.config(local_IP, gateway, subnet);
+  WiFi.config(localIp, gateway, subnet);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -66,7 +66,7 @@ void setup() {
   Serial.println("Signal strength (RSSI):");
   Serial.println(WiFi.RSSI());
 
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER);
 
   server.begin();
 }
@@ -84,7 +84,7 @@ void waitForData() {
 }
 
 void readUntilDataHead() {
-  while (Serial.read() != data_head) {
+  while (Serial.read() != DATA_HEAD) {
     delay(1);
   }
 }
