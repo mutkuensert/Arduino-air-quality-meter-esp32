@@ -28,13 +28,13 @@ private:
   int convertHighLowByteToDecimal(uint8_t high, uint8_t low);
   uint8_t mod256(uint16_t value);
 
-  uint8_t sleep_mode_command[19];
-  uint8_t work_mode_command[19];
-  uint8_t query_report_mode_command[19];
-  uint8_t query_data_command[19];
-  uint8_t active_report_mode_command[19];
-  uint8_t sensor_data_head;
-  uint8_t sensor_measurement_answer_id;
+  uint8_t SLEEP_MODE_COMMAND[19];
+  uint8_t WORK_MODE_COMMAND[19];
+  uint8_t QUERY_REPORT_MODE_COMMAND[19];
+  uint8_t QUERY_DATA_COMMAND[19];
+  uint8_t ACTIVE_REPORT_MODE_COMMAND[19];
+  uint8_t SENSOR_DATA_HEAD;
+  uint8_t SENSOR_MEASUREMENT_ANSWER_ID;
 };
 
 #endif

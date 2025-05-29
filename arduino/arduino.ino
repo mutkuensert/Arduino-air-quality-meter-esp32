@@ -5,16 +5,17 @@
 #include "PmResult.h"
 #include "Sds011SensorHandler.h"
 
-int data_ready_signal_pin = 2;
-int sensor_receiver_pin = 3;
-int sensor_transmitter_pin = 4;
+constexpr int DATA_READY_SIGNAL_PIN = 2;
+constexpr int SENSOR_RECEIVER_PIN = 3;
+constexpr int SENSOR_TRANSMITTER_PIN = 4;
+constexpr uint8_t ESP32_DATA_HEAD = 0xAA;
 
-SoftwareSerial sensorSerial(sensor_receiver_pin, sensor_transmitter_pin);
+SoftwareSerial sensorSerial(SENSOR_RECEIVER_PIN, SENSOR_TRANSMITTER_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Sds011SensorHandler sensorHandler(sensorSerial);
 
-unsigned long measurement_start_time = 0;
-bool is_work_mode_active = false;
+unsigned long measurementStartTime = 0;
+bool isWorkModeActive = false;
 
 String pm25Output = "";
 String pm10Output = "";
@@ -22,12 +23,13 @@ String pm10Output = "";
 void setup() {
   Serial.begin(115200);
   sensorSerial.begin(9600);
-  setTime(20, 11, 0, 28, 5, 2025);  // Set current time for arduino
-  pinMode(data_ready_signal_pin, OUTPUT);
+  pinMode(DATA_READY_SIGNAL_PIN, OUTPUT);
+
   lcd.begin(16, 2);
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Starting...");
+
   sensorHandler.sendQueryReportModeCommand();
   delay(1000);
   sensorHandler.sendActiveReportModeCommand();
@@ -35,44 +37,31 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - measurement_start_time > 60000) {
+  if (millis() - measurementStartTime > 60000) {
     sensorHandler.sendQueryReportModeCommand();
     delay(1000);
     sensorHandler.sendSleepModeCommand();
+
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(pm25Output);
     lcd.setCursor(0, 1);
     lcd.print(pm10Output + "slp");
+
     delay(60000);
-    measurement_start_time = millis();
-    is_work_mode_active = false;
+    measurementStartTime = millis();
+    isWorkModeActive = false;
   } else {
-    if (is_work_mode_active == false) {
+    if (isWorkModeActive == false) {
       sensorHandler.sendWorkModeCommand();
       delay(1000);
       sensorHandler.sendActiveReportModeCommand();
       delay(1000);
-      is_work_mode_active = true;
+      isWorkModeActive = true;
     }
     readMeasurementData();
   }
 }
-
-String getDateTime() {
-  time_t currentTime = now();
-  int yr = year(currentTime);
-  int mn = month(currentTime);
-  int dy = day(currentTime);
-  int hr = hour(currentTime);
-  int min = minute(currentTime);
-  int sec = second(currentTime);
-  char dateTimeBuffer[30];
-  sprintf(dateTimeBuffer, "%04d-%02d-%02d %02d:%02d:%02d", yr, mn, dy, hr, min, sec);
-  return String(dateTimeBuffer);
-}
-
-uint8_t esp32_data_head = 0xAA;
 
 void readMeasurementData() {
   PmResult pmResult = sensorHandler.readPmResult();
@@ -85,7 +74,7 @@ void readMeasurementData() {
   lcd.setCursor(0, 1);
   lcd.print(pm10Output);
 
-  Serial.write(esp32_data_head);
+  Serial.write(ESP32_DATA_HEAD);
   Serial.write(pmResult.pm25_low);
   Serial.write(pmResult.pm25_high);
   Serial.write(pmResult.pm10_low);
@@ -94,7 +83,7 @@ void readMeasurementData() {
 }
 
 void sendDataIsReadySignalForEsp32() {
-  digitalWrite(data_ready_signal_pin, HIGH);  // Data is ready signal for esp32
+  digitalWrite(DATA_READY_SIGNAL_PIN, HIGH);  // Data is ready signal for esp32
   delay(10);                                  // Short amount of time for signal detection
-  digitalWrite(data_ready_signal_pin, LOW);   // Reset signal
+  digitalWrite(DATA_READY_SIGNAL_PIN, LOW);   // Reset signal
 }
