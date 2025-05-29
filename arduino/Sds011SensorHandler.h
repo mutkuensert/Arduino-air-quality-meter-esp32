@@ -5,11 +5,13 @@
 #include <SoftwareSerial.h>
 #include "PmResult.h"
 
+#define SENSOR_RECEIVER_PIN 3
+#define SENSOR_TRANSMITTER_PIN 4
+
 class Sds011SensorHandler {
 public:
   Sds011SensorHandler();
-  void setSensorSerial(SoftwareSerial * serial);
-  void waitUntilReady();
+  void beginSoftwareSerial();
   void sendSleepModeCommand();
   void sendWorkModeCommand();
   void sendQueryReportModeCommand();
@@ -18,7 +20,7 @@ public:
   PmResult readPmResult();
 
 private:
-  SoftwareSerial * sensorSerial;
+  SoftwareSerial sensorSerial;
 
   void sendCommand(uint8_t* cmd, size_t len);
   bool isSensorDataAvailable();

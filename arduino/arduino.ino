@@ -1,15 +1,11 @@
 #include <Arduino.h>
 #include <TimeLib.h>
-#include <SoftwareSerial.h>
 #include <LiquidCrystal_I2C.h>
 #include "PmResult.h"
 #include "Sds011SensorHandler.h"
 
 int data_ready_signal_pin = 2;
-int sensor_receiver_pin = 3;
-int sensor_transmitter_pin = 4;
 
-SoftwareSerial sensorSerial(sensor_receiver_pin, sensor_transmitter_pin);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Sds011SensorHandler sensorHandler;
 
@@ -20,9 +16,9 @@ String pm25Output = "";
 String pm10Output = "";
 
 void setup() {
-  sensorHandler.setSensorSerial(&sensorSerial);
+  sensorHandler.setSensorSerial();
   Serial.begin(115200);
-  sensorSerial.begin(9600);
+  sensorHandler.beginSoftwareSerial();
   setTime(20, 11, 0, 28, 5, 2025);  // Set current time for arduino
   pinMode(data_ready_signal_pin, OUTPUT);
   lcd.begin(16, 2);
