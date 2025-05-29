@@ -17,6 +17,7 @@ WiFiServer server(80);
 volatile bool isDataReady = false;
 String htmlData = "";
 String jsonData = "";
+uint8_t data_head = 0xAA;
 
 void IRAM_ATTR setDataReady() {
   isDataReady = true;
@@ -27,6 +28,7 @@ struct tm getLocalTime() {
 
   if (!getLocalTime(&timeinfo)) {
     Serial.println("Time info could not be retrieved.");
+    // Geçersiz zaman döndürmek için tüm alanları sıfırla
     memset(&timeinfo, 0, sizeof(struct tm));
   }
 
@@ -34,12 +36,14 @@ struct tm getLocalTime() {
 }
 
 void setup() {
-  pinMode(15, INPUT);
+  pinMode(15, INPUT);  // Arduino'dan gelen sinyal pini
   attachInterrupt(digitalPinToInterrupt(15), setDataReady, RISING);
 
   Serial.begin(115200);
 
   delay(10);
+
+  // We start by connecting to a WiFi network
 
   Serial.println();
   Serial.println();
@@ -70,39 +74,45 @@ void flushSerial() {
   }
 }
 
-String* getSensorData() {
+bool isDataAvailable() {
+  return Serial.available() >= 5;
+}
+
+void readUntilDataHead() {
+  while (Serial.read() != data_head)
+    ;
+}
+
+int convertHighLowByteToDecimal(uint8_t high, uint8_t low) {
+  return (high << 8) | low;
+}
+
+float* getSensorData() {
   isDataReady = false;
-  static String data[3] = { "", "", "" };
+  static float data[4];
   String currentLine = "";
   int lineIndex = 0;
-  while (Serial.available() > 0) {
-    char c = Serial.read();
-    currentLine += c;
-    if (currentLine == "\r\n") {
-      flushSerial();
-      break;
-    }
 
-    if (lineIndex >= 3) {
-      flushSerial();
-      break;
-    }
+  readUntilDataHead();
+  int pm25Low = Serial.read();
+  int pm25High = Serial.read();
+  int pm10Low = Serial.read();
+  int pm10High = Serial.read();
+  float pm25 = convertHighLowByteToDecimal(pm25High, pm25Low) / 10.0;
+  float pm10 = convertHighLowByteToDecimal(pm10High, pm10Low) / 10.0;
 
-    if (c == '\n') {
-      data[lineIndex] = currentLine;
-      lineIndex++;
-      currentLine = "";
-    }
-  }
+  data[0] = pm25;
+  data[1] = pm10;
+
   return data;
 }
 
 void loop() {
   WiFiClient client = server.available();
-  if (isDataReady) {
-    String* data = getSensorData();
-    htmlData = String(data[1] + "<br>" + data[2] + "<br>" + htmlData);
-    Serial.println("Received data: " + data[0] + data[1] + data[2]);
+  if (isDataReady && isDataAvailable()) {
+    float* data = getSensorData();
+    htmlData = String(String(data[0]) + "<br>" + String(data[1]) + "<br>" + htmlData);
+    Serial.println("Received data: " + String(data[0]) + "\n" + String(data[1]));
   }
 
   if (client) {
