@@ -13,6 +13,12 @@ SoftwareSerial sensorSerial(sensor_receiver_pin, sensor_transmitter_pin);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 Sds011SensorHandler sensorHandler(sensorSerial);
 
+unsigned long measurement_start_time = 0;
+bool is_work_mode_active = false;
+
+String pm25Output = "";
+String pm10Output = "";
+
 void setup() {
   Serial.begin(115200);
   sensorSerial.begin(9600);
@@ -24,16 +30,33 @@ void setup() {
   lcd.print("Starting...");
   sensorHandler.sendQueryReportModeCommand();
   delay(1000);
+  sensorHandler.sendActiveReportModeCommand();
+  delay(1000);
 }
 
 void loop() {
-  sensorHandler.sendWorkModeCommand();
-  delay(45000);  //Wait for sensor stabilization
-  sensorHandler.sendQueryDataCommand();
-  delay(1000);
-  readMeasurementData();
-  sensorHandler.sendSleepModeCommand();
-  delay(60000);
+  if (millis() - measurement_start_time > 60000) {
+    sensorHandler.sendQueryReportModeCommand();
+    delay(1000);
+    sensorHandler.sendSleepModeCommand();
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(pm25Output);
+    lcd.setCursor(0, 1);
+    lcd.print(pm10Output + "slp");
+    delay(60000);
+    measurement_start_time = millis();
+    is_work_mode_active = false;
+  } else {
+    if (is_work_mode_active == false) {
+      sensorHandler.sendWorkModeCommand();
+      delay(1000);
+      sensorHandler.sendActiveReportModeCommand();
+      delay(1000);
+      is_work_mode_active = true;
+    }
+    readMeasurementData();
+  }
 }
 
 String getDateTime() {
@@ -53,8 +76,8 @@ uint8_t esp32_data_head = 0xAA;
 
 void readMeasurementData() {
   PmResult pmResult = sensorHandler.readPmResult();
-  String pm25Output = "PM2.5:" + String(pmResult.pm25) + "ug/m3";
-  String pm10Output = "PM10:" + String(pmResult.pm10) + "ug/m3";
+  pm25Output = "PM2.5:" + String(pmResult.pm25) + "ug/m3";
+  pm10Output = "PM10:" + String(pmResult.pm10) + "ug/m3";
 
   lcd.clear();
   lcd.setCursor(0, 0);

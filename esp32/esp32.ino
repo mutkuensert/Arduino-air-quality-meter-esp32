@@ -14,6 +14,8 @@ IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
 WiFiServer server(80);
+long rssi = 0;
+
 volatile bool isDataReady = false;
 uint8_t data_head = 0xAA;
 
@@ -112,14 +114,17 @@ float* getSensorData() {
 }
 
 void loop() {
+  rssi = WiFi.RSSI();
   WiFiClient client = server.available();
 
   if (isDataReady) {
     waitForData();
     float* data = getSensorData();
-    htmlData = String(String(data[0]) + "<br>" + String(data[1]));
+    htmlData = String("Wifi strength: " + String(rssi) + "<br>" + String(data[0]) + "<br>" + String(data[1]));
     jsonData = String("{\"pm2.5\":") + String(data[0]) + "," + String("\"pm10\":") + String(data[1]) + String("}");
-    Serial.println("Received data:\n" + String(data[0]) + "\n" + String(data[1]));
+    Serial.println("Received data:");
+    Serial.println(data[0]);
+    Serial.println(data[1]);
   }
 
   if (client) {
