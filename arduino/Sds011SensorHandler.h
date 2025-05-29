@@ -7,10 +7,9 @@
 
 class Sds011SensorHandler {
 public:
-  SoftwareSerial& sensorSerial;
-
-  Sds011SensorHandler(SoftwareSerial& sensorSerial);
-
+  Sds011SensorHandler();
+  void setSensorSerial(SoftwareSerial * serial);
+  void waitUntilReady();
   void sendSleepModeCommand();
   void sendWorkModeCommand();
   void sendQueryReportModeCommand();
@@ -19,6 +18,8 @@ public:
   PmResult readPmResult();
 
 private:
+  SoftwareSerial * sensorSerial;
+
   void sendCommand(uint8_t* cmd, size_t len);
   bool isSensorDataAvailable();
   void waitUntilSensorDataIsAvailable();
