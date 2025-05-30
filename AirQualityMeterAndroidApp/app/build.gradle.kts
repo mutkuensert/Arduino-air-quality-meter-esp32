@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization.converter)
     implementation(libs.koin.compose)
     implementation(libs.koin.android)
+    implementation(libs.koin.androidx.workmanager)
     implementation(libs.chucker)
     implementation(libs.okhttp3.logging)
     implementation(libs.timber)
