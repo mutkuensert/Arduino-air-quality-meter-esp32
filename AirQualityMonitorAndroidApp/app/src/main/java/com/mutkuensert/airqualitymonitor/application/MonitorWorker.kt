@@ -79,7 +79,12 @@ class MonitorWorker(
 
         return if (result.isSuccess) {
             val pmResponse = result.getOrNull()!!
-            airQualityStateManager.update(AirQualityState.AirQualityData(pmResponse.pm25, pmResponse.pm10))
+            airQualityStateManager.update(
+                AirQualityState.AirQualityData(
+                    pmResponse.pm25,
+                    pmResponse.pm10
+                )
+            )
 
             if (pmResponse.pm25 > repository.thresholdPm25
                 || pmResponse.pm10 > repository.thresholdPm10
@@ -91,7 +96,11 @@ class MonitorWorker(
                     pmResponse.pm25,
                     pmResponse.pm10,
                 )
-                airQualityNotification.push(notifTitle, notifContent, NotificationCompat.PRIORITY_MAX)
+                airQualityNotification.push(
+                    notifTitle,
+                    notifContent,
+                    NotificationCompat.PRIORITY_MAX
+                )
             } else {
                 val notifTitle = context.getString(R.string.particle_monitoring)
                 val notifContent = context.getString(
@@ -104,6 +113,10 @@ class MonitorWorker(
             }
             Result.success()
         } else {
+            airQualityNotification.push(
+                context.getString(R.string.warning),
+                context.getString(R.string.data_could_not_be_retrieved, CurrentTime.now())
+            )
             Result.retry()
         }
     }
