@@ -21,7 +21,12 @@ class AirQualityForegroundMonitor(
         while (applicationLifecycleObserver.isAppForegrounded()) {
             val pmResult = repository.fetchPmData()
             pmResult.onSuccess {
-                airQualityStateManager.update(AirQualityState.AirQualityData(pm25 = it.pm25, pm10 = it.pm10))
+                airQualityStateManager.update(
+                    AirQualityState.AirQualityData(
+                        pm25 = it.pm25,
+                        pm10 = it.pm10
+                    )
+                )
                 pushNotification(it.pm25, it.pm10)
             }.onFailure {
                 airQualityStateManager.update(AirQualityState.Failure(it.message ?: ""))
@@ -34,7 +39,7 @@ class AirQualityForegroundMonitor(
     private fun pushCouldNotRetrievedNotification() {
         airQualityNotification.push(
             context.getString(R.string.warning),
-            context.getString(R.string.data_could_not_be_retrieved)
+            context.getString(R.string.data_could_not_be_retrieved, CurrentTime.now())
         )
     }
 

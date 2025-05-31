@@ -15,5 +15,5 @@
     <string name="something_happened_during_control">Kontrol sırasında bir hata oldu.</string>
     <string name="control_is_successful">Kontrol başarılı.</string>
     <string name="particle_monitoring_is_about_to_start">Partikül takibi başlamak üzere.</string>
-    <string name="data_could_not_be_retrieved">Data alınamadı.</string>
+    <string name="data_could_not_be_retrieved">%1$s\nData alınamadı.</string>
 </resources>
