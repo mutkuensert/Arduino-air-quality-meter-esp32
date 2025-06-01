@@ -11,6 +11,12 @@ This project is a complete air quality monitoring system that measures particula
 
 ---
 
+<div align="center">
+ <img src="docs/circuit_pic.jpeg" width="400"/>
+</div>
+
+___
+
 ## Table of Contents
 
 - [Features](#features)
@@ -66,9 +72,9 @@ This project is a complete air quality monitoring system that measures particula
 ### Arduino Setup
 
 1. **Wiring:**
-   - Connect the SDS011 sensor to the Arduino using UART (pins 3 and 4).
+   - Connect the SDS011 sensor to the Arduino using UART.
    - Connect the LCD display via I2C.
-   - Connect a digital output pin (pin 2) to the ESP32 as a data-ready signal.
+   - Connect a digital output pin to the ESP32 as a data-ready signal.
 
 2. **Flashing:**
    - Open `arduino/arduino.ino` in the Arduino IDE.
@@ -109,6 +115,10 @@ This project is a complete air quality monitoring system that measures particula
 3. **Functionality:**
    - The app fetches air quality data from the ESP32, displays it, and notifies the user if thresholds are exceeded.
    - Users can set custom thresholds and monitoring intervals.
+
+<div align="center">
+ <img src="docs/android_app_screen_shot.png" width="300"/>
+</div>
 
 ---
 
