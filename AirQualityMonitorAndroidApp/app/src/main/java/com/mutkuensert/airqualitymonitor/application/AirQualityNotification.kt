@@ -46,7 +46,7 @@ class AirQualityNotification(private val context: Context) {
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
             NOTIFICATION_CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_HIGH
         )
         channel.description =
             context.getString(R.string.notification_channel_for_threshold_exceeded_info)
