@@ -20,7 +20,11 @@ class AirQualityNotification(private val context: Context) {
 
     private val notificationCompat = NotificationManagerCompat.from(context)
 
-    fun getNotificationBuilder(title: String, content: String): NotificationCompat.Builder {
+    fun getNotificationBuilder(
+        title: String,
+        content: String
+    ): NotificationCompat.Builder {
+        createNotificationChannel()
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(content)
@@ -32,7 +36,6 @@ class AirQualityNotification(private val context: Context) {
         title: String,
         content: String
     ) {
-        createNotificationChannel()
         val notification = getNotificationBuilder(title, content)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
