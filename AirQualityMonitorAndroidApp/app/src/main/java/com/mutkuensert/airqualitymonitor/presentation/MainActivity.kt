@@ -10,9 +10,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -34,6 +37,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mutkuensert.airqualitymonitor.R
 import com.mutkuensert.airqualitymonitor.application.AirQualityMonitorService
+import com.mutkuensert.airqualitymonitor.application.setStatusBarAppearance
 import com.mutkuensert.airqualitymonitor.ui.theme.AirQualityMeterTheme
 import com.mutkuensert.airqualitymonitor.util.CurrentTime
 
@@ -44,6 +48,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         startAirQualityMonitoring()
         enableEdgeToEdge()
+        setStatusBarAppearance(true)
         PermissionHandler.requestNotificationPermission(this)
         setContent {
             val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
@@ -74,6 +79,7 @@ private fun MainScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.systemBars)
             .padding(20.dp)
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {

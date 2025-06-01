@@ -19,7 +19,7 @@ private const val AIR_QUALITY_MONITORING_INTERVAL_SECONDS_KEY =
 
 class Repository(
     private val service: AirQualityService,
-    private val applicationContext: Context
+    applicationContext: Context
 ) {
     private val preferences = applicationContext.getSharedPreferences(
         PREFERENCES_NAME,

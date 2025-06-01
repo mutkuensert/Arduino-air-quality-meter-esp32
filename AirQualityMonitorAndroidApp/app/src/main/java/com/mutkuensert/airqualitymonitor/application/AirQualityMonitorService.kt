@@ -1,5 +1,6 @@
 package com.mutkuensert.airqualitymonitor.application
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -19,6 +20,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private const val ACTION_STOP = "action_stop"
+
 class AirQualityMonitorService : Service() {
     private lateinit var repository: Repository
     private lateinit var airQualityNotification: AirQualityNotification
@@ -31,9 +34,19 @@ class AirQualityMonitorService : Service() {
         scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         inject()
 
+        val stopIntent = Intent(this, AirQualityMonitorService::class.java)
+        stopIntent.action = ACTION_STOP
+        val stopPendingIntent = PendingIntent.getService(
+            this, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = airQualityNotification.getNotificationBuilder(
             context.getString(R.string.air_quality_monitoring),
-            context.getString(R.string.air_quality_monitoring_is_about_to_start)
+            context.getString(R.string.air_quality_monitoring_is_started)
+        ).addAction(
+            android.R.drawable.ic_delete,
+            context.getString(R.string.cancel_periodic_monitoring),
+            stopPendingIntent
         ).build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -58,10 +71,14 @@ class AirQualityMonitorService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        scope.launch {
-            while (true) {
-                startMonitoring()
-                delay(repository.monitoringIntervalSeconds * 1000L)
+        if (intent?.action == ACTION_STOP) {
+            stopSelf()
+        } else {
+            scope.launch {
+                while (true) {
+                    startMonitoring()
+                    delay(repository.monitoringIntervalSeconds * 1000L)
+                }
             }
         }
         return super.onStartCommand(intent, flags, startId)

@@ -3,7 +3,7 @@
     <string name="threshold_exceeded_notify">Threshold exceedance notification</string>
     <string name="air_quality_threshold_exceeded">"Threshold has been exceeded. %1$s Pm 2.5: %2$.2f Pm:10 %3$.2f"</string>
     <string name="warning">Warning</string>
-    <string name="cancel_periodic_control">Turn off periodic monitoring.</string>
+    <string name="cancel_periodic_monitoring">Turn off periodic monitoring.</string>
     <string name="pm_2_5_pm_10">Pm 2.5: %1$.2f Pm:10 %2$.2f</string>
     <string name="warning_threshold_value">Warning threshold: %1$s</string>
     <string name="monitoring_interval_seconds">Monitoring interval in sec: %1$s</string>
@@ -13,7 +13,7 @@
     <string name="air_quality_monitoring">Air quality monitoring</string>
     <string name="something_happened_during_control">An error occurred during monitoring.</string>
     <string name="monitoring_is_successful">Monitoring is successful.</string>
-    <string name="air_quality_monitoring_is_about_to_start">Air quality monitoring is about to start.</string>
+    <string name="air_quality_monitoring_is_started">Air quality monitoring is started.</string>
     <string name="data_could_not_be_retrieved">%1$s\nData could not be retrieved.</string>
     <string name="previous_data">Data history</string>
 </resources>

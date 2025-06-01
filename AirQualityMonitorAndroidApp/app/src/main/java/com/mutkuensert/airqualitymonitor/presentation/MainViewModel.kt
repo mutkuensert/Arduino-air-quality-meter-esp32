@@ -40,7 +40,7 @@ class MainViewModel : ViewModel() {
                         _uiModel.update {
                             it.copy(
                                 dateTime = CurrentTime.now(),
-                                stateInfoText = R.string.air_quality_monitoring_is_about_to_start
+                                stateInfoText = R.string.air_quality_monitoring_is_started
                             )
                         }
                     }
