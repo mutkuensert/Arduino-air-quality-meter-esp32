@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Air Quality Monitor</string>
+    <string name="threshold_exceeded_notify">Sınır değer aşımı bildirimi</string>
+    <string name="air_quality_threshold_exceeded">"Eşik geçildi. %1$s Pm 2.5: %2$.2f Pm:10 %3$.2f ""</string>
+    <string name="warning">Uyarı</string>
+    <string name="cancel_periodic_control">Periyodik kontrolü kapat.</string>
+    <string name="pm_2_5_pm_10">Pm 2.5: %1$.2f Pm:10 %2$.2f</string>
+    <string name="warning_threshold_value">Uyarı eşik değeri: %1$s</string>
+    <string name="monitoring_interval_seconds">Kontrol saniye aralığı: %1$s</string>
+    <string name="pm_2_5_value">Pm 2.5: %1$s</string>
+    <string name="pm_10_value">Pm 10: %1$s</string>
+    <string name="notification_channel_for_threshold_exceeded_info">Eşik geçildiğinde bilgilendirilme yapılacak bildirim kanalı.</string>
+    <string name="air_quality_monitoring">Hava kalitesi takibi</string>
+    <string name="something_happened_during_control">Kontrol sırasında bir hata oldu.</string>
+    <string name="monitoring_is_successful">Kontrol başarılı.</string>
+    <string name="air_quality_monitoring_is_about_to_start">Hava kalitesi kontrolü başlamak üzere.</string>
+    <string name="data_could_not_be_retrieved">%1$s</string>
+    <string name="previous_data">Geçmiş veriler</string>
+</resources>

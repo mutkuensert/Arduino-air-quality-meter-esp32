@@ -1,46 +1,47 @@
 package com.mutkuensert.airqualitymonitor.presentation
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
-import com.mutkuensert.airqualitymonitor.Module
 import com.mutkuensert.airqualitymonitor.R
-import com.mutkuensert.airqualitymonitor.application.AirQualityForegroundMonitor
-import com.mutkuensert.airqualitymonitor.application.AirQualityNotification
+import com.mutkuensert.airqualitymonitor.application.AirQualityMonitorService
 import com.mutkuensert.airqualitymonitor.ui.theme.AirQualityMeterTheme
 import com.mutkuensert.airqualitymonitor.util.CurrentTime
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
-    private lateinit var airQualityNotification: AirQualityNotification
-    private lateinit var airQualityForegroundMonitor: AirQualityForegroundMonitor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        airQualityForegroundMonitor = Module.Single.airQualityForegroundMonitor
-        airQualityNotification = AirQualityNotification(this)
         startAirQualityMonitoring()
         enableEdgeToEdge()
         PermissionHandler.requestNotificationPermission(this)
@@ -58,17 +59,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startAirQualityMonitoring() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            airQualityForegroundMonitor.start()
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        airQualityNotification.push(
-            getString(R.string.particle_monitoring),
-            getString(R.string.particle_monitoring_is_about_to_start)
-        )
+        val intent = Intent(this, AirQualityMonitorService::class.java)
+        ContextCompat.startForegroundService(this, intent)
     }
 }
 
@@ -86,7 +78,7 @@ private fun MainScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             Text(text = uiModel.dateTime)
-            Text(text = stringResource(uiModel.stateInfo))
+            Text(text = stringResource(uiModel.stateInfoText))
 
             Spacer(Modifier.height(20.dp))
 
@@ -161,6 +153,35 @@ private fun MainScreen(
                     keyboardType = KeyboardType.Number,
                 )
             )
+
+            Spacer(Modifier.height(30.dp))
+
+            Text(
+                text = stringResource(R.string.previous_data),
+                style = TextStyle(fontWeight = FontWeight.Bold)
+            )
+
+            Spacer(Modifier.height(4.dp))
+
+            DataHistory(uiModel)
+        }
+    }
+}
+
+@Composable
+private fun DataHistory(uiModel: MainActivityUiModel) {
+    Box(Modifier.border(1.dp, Color.Black, MaterialTheme.shapes.medium)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(10.dp)
+        ) {
+            uiModel.airQualityHistory.forEach {
+                Spacer(Modifier.height(10.dp))
+                Text(text = it.date)
+                Text(text = "Pm2.5: ${it.pm25} Pm10: ${it.pm10}")
+            }
         }
     }
 }
@@ -179,7 +200,8 @@ fun GreetingPreview() {
             pm10CurrentThreshold = "10",
             trackIntervalSeconds = "",
             monitoringIntervalSeconds = "",
-            stateInfo = -1
+            stateInfoText = -1,
+            emptyList(),
         )
         MainScreen(
             uiModel,

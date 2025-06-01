@@ -11,10 +11,10 @@ import androidx.core.app.NotificationManagerCompat
 import com.mutkuensert.airqualitymonitor.R
 
 class AirQualityNotification(private val context: Context) {
-    val NOTIFICATION_CHANNEL_NAME = context.getString(R.string.threshold_exceeded_notify)
+    private val NOTIFICATION_CHANNEL_NAME = context.getString(R.string.threshold_exceeded_notify)
 
     companion object {
-        const val NOTIFICATION_CHANNEL_ID = "THRESHOLD_NOTIFICATION_CHANNEL_ID"
+        const val NOTIFICATION_CHANNEL_ID = "air_quality_monitor_channel"
         const val NOTIFICATION_ID = 1
     }
 
@@ -28,9 +28,14 @@ class AirQualityNotification(private val context: Context) {
             .setOngoing(true)
     }
 
-    fun push(title: String, content: String, priority: Int = NotificationCompat.PRIORITY_LOW) {
+    fun push(
+        title: String,
+        content: String
+    ) {
         createNotificationChannel()
-        val notification = getNotificationBuilder(title, content).setPriority(priority).build()
+        val notification = getNotificationBuilder(title, content)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
 
         if (ActivityCompat.checkSelfPermission(
                 context,

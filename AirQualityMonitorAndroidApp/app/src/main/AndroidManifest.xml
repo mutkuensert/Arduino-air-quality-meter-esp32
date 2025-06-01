@@ -23,6 +23,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AirQualityMeter"
         android:usesCleartextTraffic="true">
+
+        <service
+            android:name=".application.AirQualityMonitorService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false">
+        </service>
+
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"

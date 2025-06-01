@@ -12,7 +12,8 @@ data class MainActivityUiModel(
     val pm10CurrentThreshold: String,
     val trackIntervalSeconds: String,
     val monitoringIntervalSeconds: String,
-    @StringRes val stateInfo: Int,
+    @StringRes val stateInfoText: Int,
+    val airQualityHistory: List<AirQualityUiModel>
 ) {
     companion object {
         fun initial(
@@ -29,7 +30,8 @@ data class MainActivityUiModel(
             pm10CurrentThreshold,
             "",
             monitoringIntervalSeconds,
-            -1
+            -1,
+            emptyList()
         )
     }
 }

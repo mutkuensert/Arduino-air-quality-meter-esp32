@@ -27,7 +27,7 @@ class MainViewModel : ViewModel() {
         MainActivityUiModel.initial(
             repository.thresholdPm25.toString(),
             repository.thresholdPm10.toString(),
-            repository.foregroundMonitoringIntervalSeconds.toString(),
+            repository.monitoringIntervalSeconds.toString(),
         )
     )
     val uiModel: StateFlow<MainActivityUiModel> = _uiModel.asStateFlow()
@@ -40,7 +40,7 @@ class MainViewModel : ViewModel() {
                         _uiModel.update {
                             it.copy(
                                 dateTime = CurrentTime.now(),
-                                stateInfo = R.string.particle_monitoring_is_about_to_start
+                                stateInfoText = R.string.air_quality_monitoring_is_about_to_start
                             )
                         }
                     }
@@ -49,18 +49,20 @@ class MainViewModel : ViewModel() {
                         _uiModel.update {
                             it.copy(
                                 dateTime = CurrentTime.now(),
-                                stateInfo = R.string.something_happened_during_control
+                                stateInfoText = R.string.something_happened_during_control
                             )
                         }
                     }
 
                     is AirQualityState.AirQualityData -> {
-                        _uiModel.update {
-                            it.copy(
+                        _uiModel.update { uiModel ->
+                            uiModel.copy(
                                 dateTime = CurrentTime.now(),
                                 pm25 = state.pm25.toString(),
                                 pm10 = state.pm10.toString(),
-                                stateInfo = R.string.control_is_successful
+                                stateInfoText = R.string.monitoring_is_successful,
+                                airQualityHistory = repository.getAirQualityHistory()
+                                    .map { it.toUiModel() }
                             )
                         }
                     }
@@ -74,7 +76,7 @@ class MainViewModel : ViewModel() {
             it.copy(pm25Threshold = text, pm25CurrentThreshold = text)
         }
         viewModelScope.launch {
-            repository.setThresholdPm25(
+            repository.saveThresholdPm25(
                 text.toIntOrNull() ?: THRESHOLD_PM_25_DEFAULT
             )
         }
@@ -85,7 +87,7 @@ class MainViewModel : ViewModel() {
             it.copy(pm10Threshold = text, pm10CurrentThreshold = text)
         }
         viewModelScope.launch {
-            repository.setThresholdPm10(
+            repository.saveThresholdPm10(
                 text.toIntOrNull() ?: THRESHOLD_PM_10_DEFAULT
             )
         }
