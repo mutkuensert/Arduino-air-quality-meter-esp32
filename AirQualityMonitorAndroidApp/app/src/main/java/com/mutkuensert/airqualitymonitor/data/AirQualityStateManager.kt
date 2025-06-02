@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class AirQualityStateManager() {
+class AirQualityStateManager {
     private val _state = MutableStateFlow<AirQualityState>(Empty)
     val state = _state.asStateFlow()
 

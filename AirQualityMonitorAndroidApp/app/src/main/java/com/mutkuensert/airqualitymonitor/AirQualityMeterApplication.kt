@@ -1,9 +1,9 @@
 package com.mutkuensert.airqualitymonitor
 
 import android.app.Application
-import com.mutkuensert.airqualitymonitor.application.ApplicationLifecycleObserver
-import com.mutkuensert.airqualitymonitor.data.AirQualityStateManager
-import com.mutkuensert.airqualitymonitor.data.Repository
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.GlobalContext.startKoin
 import timber.log.Timber
 
 class AirQualityMeterApplication : Application() {
@@ -11,14 +11,12 @@ class AirQualityMeterApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         plantTimber()
-        injectDependencies()
-    }
 
-    private fun injectDependencies() {
-        Module.Single.applicationContext = this
-        Module.Single.applicationLifecycleObserver = ApplicationLifecycleObserver()
-        Module.Single.airQualityStateManager = AirQualityStateManager()
-        Module.Single.repository = Repository(Module.createPmService(this), this)
+        startKoin {
+            androidLogger()
+            androidContext(this@AirQualityMeterApplication)
+            modules(koinModule)
+        }
     }
 
     private fun plantTimber() {

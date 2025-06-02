@@ -2,7 +2,6 @@ package com.mutkuensert.airqualitymonitor.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mutkuensert.airqualitymonitor.Module
 import com.mutkuensert.airqualitymonitor.R
 import com.mutkuensert.airqualitymonitor.data.AirQualityState
 import com.mutkuensert.airqualitymonitor.data.AirQualityStateManager
@@ -18,10 +17,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
-    private val repository: Repository = Module.Single.repository
-    private val airQualityStateManager: AirQualityStateManager =
-        Module.Single.airQualityStateManager
+class MainViewModel(
+    private val repository: Repository,
+    private val airQualityStateManager: AirQualityStateManager
+) : ViewModel() {
 
     private val _uiModel = MutableStateFlow(
         MainActivityUiModel.initial(

@@ -7,7 +7,6 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.mutkuensert.airqualitymonitor.Module
 import com.mutkuensert.airqualitymonitor.R
 import com.mutkuensert.airqualitymonitor.data.AirQualityState
 import com.mutkuensert.airqualitymonitor.data.AirQualityStateManager
@@ -19,18 +18,20 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.getKoin
 
 private const val ACTION_STOP = "action_stop"
 
 class AirQualityMonitorService : Service() {
-    private lateinit var repository: Repository
+    private val repository by lazy { getKoin().get<Repository>() }
     private lateinit var airQualityNotification: AirQualityNotification
-    private lateinit var airQualityStateManager: AirQualityStateManager
+    private val airQualityStateManager by lazy { getKoin().get<AirQualityStateManager>() }
     private lateinit var scope: CoroutineScope
 
     override fun onCreate() {
         super.onCreate()
-        inject()
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        airQualityNotification = AirQualityNotification(this)
 
         val stopIntent = Intent(this, AirQualityMonitorService::class.java)
         stopIntent.action = ACTION_STOP
@@ -61,13 +62,6 @@ class AirQualityMonitorService : Service() {
                 notification
             )
         }
-    }
-
-    private fun inject() {
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-        repository = Module.Single.repository
-        airQualityNotification = AirQualityNotification(this)
-        airQualityStateManager = Module.Single.airQualityStateManager
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

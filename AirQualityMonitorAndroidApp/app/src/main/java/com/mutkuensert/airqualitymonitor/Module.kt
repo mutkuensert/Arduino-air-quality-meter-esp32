@@ -6,50 +6,55 @@ import com.mutkuensert.airqualitymonitor.application.ApplicationLifecycleObserve
 import com.mutkuensert.airqualitymonitor.data.AirQualityService
 import com.mutkuensert.airqualitymonitor.data.AirQualityStateManager
 import com.mutkuensert.airqualitymonitor.data.Repository
+import com.mutkuensert.airqualitymonitor.presentation.MainViewModel
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.android.ext.koin.androidApplication
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
-object Module {
-    object Single {
-        lateinit var applicationContext: Context
-        lateinit var repository: Repository
-        lateinit var applicationLifecycleObserver: ApplicationLifecycleObserver
-        lateinit var airQualityStateManager: AirQualityStateManager
-    }
+val koinModule = module {
+    single { ApplicationLifecycleObserver() }
+    single { AirQualityStateManager() }
+    single { Repository(get(), get(), androidApplication()) }
+    single { createRetrofit(androidApplication()) }
+    single { createPmService(androidApplication()) }
+    single { createJson() }
+    viewModel { MainViewModel(get(), get()) }
+}
 
-    private fun createRetrofit(context: Context): Retrofit {
-        return Retrofit.Builder()
-            .client(createClient(context))
-            .baseUrl("http://192.168.0.184")
-            .addConverterFactory(createJson().asConverterFactory("application/json; charset=UTF8".toMediaType()))
-            .build()
-    }
+private fun createRetrofit(context: Context): Retrofit {
+    return Retrofit.Builder()
+        .client(createClient(context))
+        .baseUrl("http://192.168.0.184")
+        .addConverterFactory(createJson().asConverterFactory("application/json; charset=UTF8".toMediaType()))
+        .build()
+}
 
-    fun createPmService(context: Context): AirQualityService {
-        return createRetrofit(context).create(AirQualityService::class.java)
-    }
+private fun createPmService(context: Context): AirQualityService {
+    return createRetrofit(context).create(AirQualityService::class.java)
+}
 
-    fun createJson(): Json {
-        return Json {
-            ignoreUnknownKeys = true
-            explicitNulls = false
-            prettyPrint = true
-            isLenient = true
-            encodeDefaults = true
-        }
+private fun createJson(): Json {
+    return Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+        prettyPrint = true
+        isLenient = true
+        encodeDefaults = true
     }
+}
 
-    private fun createClient(context: Context): OkHttpClient {
-        return OkHttpClient()
-            .newBuilder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BASIC
-            })
-            .addInterceptor(ChuckerInterceptor(context))
-            .build()
-    }
+private fun createClient(context: Context): OkHttpClient {
+    return OkHttpClient()
+        .newBuilder()
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        })
+        .addInterceptor(ChuckerInterceptor(context))
+        .build()
 }

@@ -2,8 +2,8 @@ package com.mutkuensert.airqualitymonitor.data
 
 import android.content.Context
 import androidx.core.content.edit
-import com.mutkuensert.airqualitymonitor.Module
 import com.mutkuensert.airqualitymonitor.util.CurrentTime
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 const val THRESHOLD_PM_25_DEFAULT = 10
@@ -19,6 +19,7 @@ private const val AIR_QUALITY_MONITORING_INTERVAL_SECONDS_KEY =
 
 class Repository(
     private val service: AirQualityService,
+    private val json: Json,
     applicationContext: Context
 ) {
     private val preferences = applicationContext.getSharedPreferences(
@@ -58,7 +59,7 @@ class Repository(
 
     suspend fun getAirQualityHistory(): List<AirQualityEntity> {
         return preferences.getString(AIR_QUALITY_HISTORY_KEY, "[]").run {
-            Module.createJson().decodeFromString(this!!)
+            json.decodeFromString(this!!)
         }
     }
 
@@ -69,7 +70,7 @@ class Repository(
         preferences.edit {
             putString(
                 AIR_QUALITY_HISTORY_KEY,
-                Module.createJson().encodeToString(history)
+                json.encodeToString(history)
             )
         }
     }
