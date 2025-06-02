@@ -34,37 +34,50 @@ class MainViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            airQualityStateManager.state.collectLatest { state ->
-                when (state) {
-                    is AirQualityState.Empty -> {
-                        _uiModel.update {
-                            it.copy(
-                                dateTime = CurrentTime.now(),
-                                stateInfoText = R.string.air_quality_monitoring_is_started
-                            )
-                        }
-                    }
+            updateHistory()
+            collectAirQualityData()
+        }
+    }
 
-                    is AirQualityState.Failure -> {
-                        _uiModel.update {
-                            it.copy(
-                                dateTime = CurrentTime.now(),
-                                stateInfoText = R.string.something_happened_during_control
-                            )
-                        }
-                    }
+    private suspend fun updateHistory() {
+        _uiModel.update { uiModel ->
+            uiModel.copy(
+                airQualityHistory = repository.getAirQualityHistory()
+                    .map { it.toUiModel() })
+        }
+    }
 
-                    is AirQualityState.AirQualityData -> {
-                        _uiModel.update { uiModel ->
-                            uiModel.copy(
-                                dateTime = CurrentTime.now(),
-                                pm25 = state.pm25.toString(),
-                                pm10 = state.pm10.toString(),
-                                stateInfoText = R.string.monitoring_is_successful,
-                                airQualityHistory = repository.getAirQualityHistory()
-                                    .map { it.toUiModel() }
-                            )
-                        }
+    private suspend fun collectAirQualityData() {
+        airQualityStateManager.state.collectLatest { state ->
+            when (state) {
+                is AirQualityState.Empty -> {
+                    _uiModel.update {
+                        it.copy(
+                            dateTime = CurrentTime.now(),
+                            stateInfoText = R.string.air_quality_monitoring_is_started
+                        )
+                    }
+                }
+
+                is AirQualityState.Failure -> {
+                    _uiModel.update {
+                        it.copy(
+                            dateTime = CurrentTime.now(),
+                            stateInfoText = R.string.something_happened_during_control
+                        )
+                    }
+                }
+
+                is AirQualityState.AirQualityData -> {
+                    _uiModel.update { uiModel ->
+                        uiModel.copy(
+                            dateTime = CurrentTime.now(),
+                            pm25 = state.pm25.toString(),
+                            pm10 = state.pm10.toString(),
+                            stateInfoText = R.string.monitoring_is_successful,
+                            airQualityHistory = repository.getAirQualityHistory()
+                                .map { it.toUiModel() }
+                        )
                     }
                 }
             }
