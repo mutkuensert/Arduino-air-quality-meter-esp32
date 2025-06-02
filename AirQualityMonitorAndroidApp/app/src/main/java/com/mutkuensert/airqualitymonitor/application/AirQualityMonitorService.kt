@@ -74,14 +74,18 @@ class AirQualityMonitorService : Service() {
         if (intent?.action == ACTION_STOP) {
             stopSelf()
         } else {
-            scope.launch {
-                while (true) {
-                    startMonitoring()
-                    delay(repository.monitoringIntervalSeconds * 1000L)
-                }
-            }
+            startMonitoring()
         }
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun startMonitoring() {
+        scope.launch {
+            while (true) {
+                getAirQualityData()
+                delay(repository.monitoringIntervalSeconds * 1000L)
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -93,7 +97,7 @@ class AirQualityMonitorService : Service() {
         return null
     }
 
-    private suspend fun startMonitoring() {
+    private suspend fun getAirQualityData() {
         val result = repository.fetchAirQualityData()
 
         if (result.isSuccess) {
