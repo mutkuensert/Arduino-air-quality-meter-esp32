@@ -152,11 +152,5 @@ ___
 
 ---
 
-## Acknowledgements
-
-- SDS011 sensor documentation and community examples.
-- Open-source libraries for Arduino, ESP32, and Android.
-
----
 
 **For questions or contributions, please open an issue or pull request on the repository.**

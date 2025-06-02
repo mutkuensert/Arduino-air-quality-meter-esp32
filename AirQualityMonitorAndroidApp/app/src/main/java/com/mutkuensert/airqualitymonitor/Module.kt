@@ -22,7 +22,7 @@ val koinModule = module {
     single { AirQualityStateManager() }
     single { Repository(get(), get(), androidApplication()) }
     single { createRetrofit(androidApplication()) }
-    single { createPmService(androidApplication()) }
+    single { createAirQualityService(androidApplication()) }
     single { createJson() }
     viewModel { MainViewModel(get(), get()) }
 }
@@ -35,7 +35,7 @@ private fun createRetrofit(context: Context): Retrofit {
         .build()
 }
 
-private fun createPmService(context: Context): AirQualityService {
+private fun createAirQualityService(context: Context): AirQualityService {
     return createRetrofit(context).create(AirQualityService::class.java)
 }
 
