@@ -17,4 +17,7 @@
     <string name="air_quality_monitoring_is_started">Hava kalitesi kontrolü başlatıldı.</string>
     <string name="data_could_not_be_retrieved">%1$s</string>
     <string name="previous_data">Geçmiş veriler</string>
+    <string name="request_is_not_successful">İstek başarılı değil.</string>
+    <string name="response_body_is_null">Response body null.</string>
+    <string name="error_occurred_during_request">İstek sırasında hata oluştu.</string>
 </resources>

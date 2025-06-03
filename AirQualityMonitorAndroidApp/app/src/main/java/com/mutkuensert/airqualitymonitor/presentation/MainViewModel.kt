@@ -3,10 +3,10 @@ package com.mutkuensert.airqualitymonitor.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mutkuensert.airqualitymonitor.R
+import com.mutkuensert.airqualitymonitor.data.AirQualityRepository
 import com.mutkuensert.airqualitymonitor.data.AirQualityState
 import com.mutkuensert.airqualitymonitor.data.AirQualityStateManager
 import com.mutkuensert.airqualitymonitor.data.MONITORING_INTERVAL_SECONDS_DEFAULT
-import com.mutkuensert.airqualitymonitor.data.Repository
 import com.mutkuensert.airqualitymonitor.data.THRESHOLD_PM_10_DEFAULT
 import com.mutkuensert.airqualitymonitor.data.THRESHOLD_PM_25_DEFAULT
 import com.mutkuensert.airqualitymonitor.util.CurrentTime
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val repository: Repository,
+    private val repository: AirQualityRepository,
     private val airQualityStateManager: AirQualityStateManager
 ) : ViewModel() {
 
@@ -41,7 +41,7 @@ class MainViewModel(
     private suspend fun updateHistory() {
         _uiModel.update { uiModel ->
             uiModel.copy(
-                airQualityHistory = repository.getAirQualityHistory()
+                airQualityHistory = repository.getHistory()
                     .map { it.toUiModel() })
         }
     }
@@ -74,7 +74,7 @@ class MainViewModel(
                             pm25 = state.pm25.toString(),
                             pm10 = state.pm10.toString(),
                             stateInfoText = R.string.monitoring_is_successful,
-                            airQualityHistory = repository.getAirQualityHistory()
+                            airQualityHistory = repository.getHistory()
                                 .map { it.toUiModel() }
                         )
                     }
@@ -105,12 +105,12 @@ class MainViewModel(
         }
     }
 
-    fun handleForegroundMonitoringIntervalSecondsTextChange(text: String) {
+    fun handleIntervalSecondsTextChange(text: String) {
         _uiModel.update {
             it.copy(trackIntervalSeconds = text, monitoringIntervalSeconds = text)
         }
         viewModelScope.launch {
-            repository.setAirQualityMonitoringIntervalSeconds(
+            repository.setMonitoringIntervalSeconds(
                 text.toIntOrNull() ?: MONITORING_INTERVAL_SECONDS_DEFAULT
             )
         }

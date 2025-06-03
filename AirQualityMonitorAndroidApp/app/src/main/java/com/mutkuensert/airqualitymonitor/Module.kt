@@ -5,7 +5,7 @@ import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.mutkuensert.airqualitymonitor.application.ApplicationLifecycleObserver
 import com.mutkuensert.airqualitymonitor.data.AirQualityService
 import com.mutkuensert.airqualitymonitor.data.AirQualityStateManager
-import com.mutkuensert.airqualitymonitor.data.Repository
+import com.mutkuensert.airqualitymonitor.data.AirQualityRepository
 import com.mutkuensert.airqualitymonitor.presentation.MainViewModel
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -20,7 +20,7 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 val koinModule = module {
     single { ApplicationLifecycleObserver() }
     single { AirQualityStateManager() }
-    single { Repository(get(), get(), androidApplication()) }
+    single { AirQualityRepository(get(), get(), androidApplication()) }
     single { createRetrofit(androidApplication()) }
     single { createAirQualityService(androidApplication()) }
     single { createJson() }

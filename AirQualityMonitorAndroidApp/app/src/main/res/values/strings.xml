@@ -16,4 +16,7 @@
     <string name="air_quality_monitoring_is_started">Air quality monitoring is started.</string>
     <string name="data_could_not_be_retrieved">%1$s\nData could not be retrieved.</string>
     <string name="previous_data">Data history</string>
+    <string name="request_is_not_successful">Request is not successful.</string>
+    <string name="response_body_is_null">Response body is null.</string>
+    <string name="error_occurred_during_request">An error occurred during request.</string>
 </resources>

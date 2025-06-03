@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
                     uiModel = uiModel,
                     onPm25ThresholdTextChange = viewModel::handlePm25ThresholdTextChange,
                     onPm10ThresholdTextChange = viewModel::handlePm10ThresholdTextChange,
-                    onForegroundMonitoringIntervalSecondsTextChange = viewModel::handleForegroundMonitoringIntervalSecondsTextChange
+                    onIntervalSecondsTextChange = viewModel::handleIntervalSecondsTextChange
                 )
             }
         }
@@ -74,7 +74,7 @@ private fun MainScreen(
     uiModel: MainActivityUiModel,
     onPm25ThresholdTextChange: (String) -> Unit,
     onPm10ThresholdTextChange: (String) -> Unit,
-    onForegroundMonitoringIntervalSecondsTextChange: (String) -> Unit
+    onIntervalSecondsTextChange: (String) -> Unit
 ) {
     Scaffold(
         modifier = Modifier
@@ -144,7 +144,7 @@ private fun MainScreen(
                 value = uiModel.trackIntervalSeconds,
                 onValueChange = { input ->
                     if (input.all { it.isDigit() }) {
-                        onForegroundMonitoringIntervalSecondsTextChange.invoke(input)
+                        onIntervalSecondsTextChange.invoke(input)
                     }
                 },
                 label = {
@@ -186,7 +186,11 @@ private fun DataHistory(uiModel: MainActivityUiModel) {
             uiModel.airQualityHistory.forEach {
                 Spacer(Modifier.height(10.dp))
                 Text(text = it.date)
-                Text(text = "Pm2.5: ${it.pm25} Pm10: ${it.pm10}")
+                if (it is AirQualityUiModel.Success) {
+                    Text(text = "Pm2.5: ${it.pm25} Pm10: ${it.pm10}")
+                } else {
+                    Text(text = (it as AirQualityUiModel.Failure).errorMessage)
+                }
             }
         }
     }

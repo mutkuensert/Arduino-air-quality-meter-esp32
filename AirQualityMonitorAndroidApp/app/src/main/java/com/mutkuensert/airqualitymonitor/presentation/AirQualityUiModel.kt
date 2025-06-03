@@ -1,9 +1,24 @@
 package com.mutkuensert.airqualitymonitor.presentation
 
-import com.mutkuensert.airqualitymonitor.data.AirQualityEntity
+import com.mutkuensert.airqualitymonitor.data.AirQualityRequestEntity
 
-data class AirQualityUiModel(val date: String, val pm25: String, val pm10: String)
+sealed interface AirQualityUiModel {
+    val date: String
 
-fun AirQualityEntity.toUiModel(): AirQualityUiModel {
-    return AirQualityUiModel(date, pm25.toString(), pm10.toString())
+    data class Success(override val date: String, val pm25: String, val pm10: String) :
+        AirQualityUiModel
+
+    data class Failure(override val date: String, val errorMessage: String) : AirQualityUiModel
+}
+
+fun AirQualityRequestEntity.toUiModel(): AirQualityUiModel {
+    return if (airQuality != null) {
+        AirQualityUiModel.Success(
+            airQuality.date,
+            airQuality.pm25.toString(),
+            airQuality.pm10.toString()
+        )
+    } else {
+        AirQualityUiModel.Failure(failure!!.date, failure.errorMessage)
+    }
 }

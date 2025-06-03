@@ -8,13 +8,13 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.mutkuensert.airqualitymonitor.R
+import com.mutkuensert.airqualitymonitor.data.AirQualityRepository
 import com.mutkuensert.airqualitymonitor.data.AirQualityState
 import com.mutkuensert.airqualitymonitor.data.AirQualityStateManager
-import com.mutkuensert.airqualitymonitor.data.Repository
 import com.mutkuensert.airqualitymonitor.util.CurrentTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -23,14 +23,16 @@ import org.koin.android.ext.android.getKoin
 private const val ACTION_STOP = "action_stop"
 
 class AirQualityMonitorService : Service() {
-    private val repository by lazy { getKoin().get<Repository>() }
+    private val repository by lazy { getKoin().get<AirQualityRepository>() }
     private lateinit var airQualityNotification: AirQualityNotification
     private val airQualityStateManager by lazy { getKoin().get<AirQualityStateManager>() }
     private lateinit var scope: CoroutineScope
+    private var job: Job? = null
 
     override fun onCreate() {
         super.onCreate()
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        //dispatcher = newSingleThreadContext("BlockingThread")
+        scope = CoroutineScope(Dispatchers.IO + Job())
         airQualityNotification = AirQualityNotification(this)
 
         val stopIntent = Intent(this, AirQualityMonitorService::class.java)
@@ -66,18 +68,21 @@ class AirQualityMonitorService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
+            scope.cancel()
             stopSelf()
         } else {
-            startMonitoring()
+            if (job?.isActive != true) {
+                job = startMonitoring()
+            }
         }
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
-    private fun startMonitoring() {
-        scope.launch {
+    private fun startMonitoring(): Job {
+        return scope.launch {
             while (true) {
                 getAirQualityData()
-                delay(repository.monitoringIntervalSeconds * 1000L)
+                delay(1000L * repository.monitoringIntervalSeconds)
             }
         }
     }
@@ -92,7 +97,7 @@ class AirQualityMonitorService : Service() {
     }
 
     private suspend fun getAirQualityData() {
-        val result = repository.fetchAirQualityData()
+        val result = repository.fetch()
 
         if (result.isSuccess) {
             val pmResponse = result.getOrNull()!!
