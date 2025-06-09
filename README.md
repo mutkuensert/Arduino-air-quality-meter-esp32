@@ -12,6 +12,12 @@ This project is a complete air quality monitoring system that measures particula
 ---
 
 <div align="center">
+ <img src="docs/circuit_schematic.PNG" width="1000"/>
+</div>
+
+---
+
+<div align="center">
  <img src="docs/circuit_pic.jpeg" width="400"/>
 </div>
 
