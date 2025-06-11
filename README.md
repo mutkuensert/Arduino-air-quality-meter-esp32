@@ -15,10 +15,10 @@ This project is a complete air quality monitoring system that measures particula
  <img src="docs/circuit_schematic.PNG" width="1000"/>
 </div>
 
----
+___
 
 <div align="center">
- <img src="docs/circuit_pic.jpeg" width="400"/>
+ <img src="docs/circuit_perfboard.jpeg" width="800"/>
 </div>
 
 ___
